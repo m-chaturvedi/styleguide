@@ -878,67 +878,94 @@ for (int i = 0; i &lt; 1000000; ++i) {
 <h3 id="Static_and_Global_Variables">Static and Global Variables</h3>
 
 <div class="summary">
-<p>Objects with
-<a href="http://en.cppreference.com/w/cpp/language/storage_duration#Storage_duration">
-static storage duration</a> are forbidden unless they are
-<a href="http://en.cppreference.com/w/cpp/types/is_destructible">trivially
-destructible</a>. Informally this means that the destructor does not do
-anything, even taking member and base destructors into account. More formally it
-means that the type has no user-defined or virtual destructor and that all bases
-and non-static members are trivially destructible.
-Static function-local variables may use dynamic initialization.
-Use of dynamic initialization for static class member variables or variables at
-namespace scope is discouraged, but allowed in limited circumstances; see below
-for details.</p>
-
-<p>As a rule of thumb: a global variable satisfies these requirements if its
-declaration, considered in isolation, could be <code>constexpr</code>.</p>
+  <p>Variables of class type with <a href="http://en.cppreference.com/w/cpp/language/storage_duration#Storage_duration">
+    static storage duration</a> are forbidden
+  <span class="drake">(except in a narrow set of circumstances)</span>,
+  because they cause hard-to-find bugs due to
+  <a href="https://isocpp.org/wiki/faq/ctors#static-init-order">indeterminate
+  order of construction and destruction</a>.</p>
 </div>
 
 <div class="stylebody">
 
-<div class="definition">
-<p>Every object has a <dfn>storage duration</dfn>, which correlates with its
-lifetime. Objects with static storage duration live from the point of their
-initialization until the end of the program. Such objects appear as variables at
-namespace scope ("global variables"), as static data members of classes, or as
-function-local variables that are declared with the <code>static</code>
-specifier. Function-local static variables are initialized when control first
-passes through their declaration; all other objects with static storage duration
-are initialized as part of program start-up. All objects with static storage
-duration are destroyed at program exit (which happens before unjoined threads
-are terminated).</p>
+<p>Objects with static storage duration, including global
+variables, static variables, static class member
+variables, and function static variables, <span class="drake">are
+permitted only:</span><ul>
+<li><span class="drake">When the variable is</span>
+<a href="http://en.cppreference.com/w/cpp/language/constexpr"><code>constexpr</code></a>:
+they have no dynamic initialization or destruction.</li>
+<li><span class="drake">When the variable is</span>
+<a href="http://en.cppreference.com/w/cpp/concept/PODType">Plain
+Old Data (POD)</a>: ints, chars, floats, or pointers, or
+arrays/structs of POD.</li>
+<li><span class="drake">When the variable is a function
+static variable of type
+<a href="http://drake.mit.edu/doxygen_cxx/classdrake_1_1never__destroyed.html">drake::never_destroyed&lt;T&gt;</a>.
+</span></li>
+</ul/</p>
 
-<p>Initialization may be <dfn>dynamic</dfn>, which means that something
-non-trivial happens during initialization. (For example, consider a constructor
-that allocates memory, or a variable that is initialized with the current
-process ID.) The other kind of initialization is <dfn>static</dfn>
-initialization. The two aren't quite opposites, though: static
-initialization <em>always</em> happens to objects with static storage duration
-(initializing the object either to a given constant or to a representation
-consisting of all bytes set to zero), whereas dynamic initialization happens
-after that, if required.</p>
-</div>
+<p>The order in which class constructors and initializers
+for static variables are called is only partially
+specified in C++ and can even change from build to build,
+which can cause bugs that are difficult to find.
+Therefore in addition to banning globals of class type,
+we do not allow non-local static variables to be initialized
+with the result of a function, unless that function (such
+as getenv(), or getpid()) does not itself depend on any
+other globals. However, a static POD 
+<span class="drake">or never_destroyed</span>
+variable within
+function scope may be initialized with the result of a
+function, since its initialization order is well-defined
+and does not occur until control passes through its
+declaration.</p>
 
-<div class="pros">
-<p>Global and static variables are very useful for a large number of
-applications: named constants, auxiliary data structures internal to some
-translation unit, command-line flags, logging, registration mechanisms,
-background infrastructure, etc.</p>
-</div>
+<p>Likewise, global and static variables are destroyed
+when the program terminates, regardless of whether the
+termination is by returning from <code>main()</code> or
+by calling <code>exit()</code>. The order in which
+destructors are called is defined to be the reverse of
+the order in which the constructors were called. Since
+constructor order is indeterminate, so is destructor
+order. For example, at program-end time a static variable
+might have been destroyed, but code still running
+&#8212; perhaps in another thread
+&#8212; tries to access it and fails. Or the
+destructor for a static <code>string</code> variable
+might be run prior to the destructor for another variable
+that contains a reference to that string.</p>
 
-<div class="cons">
-<p>Global and static variables that use dynamic initialization or have
-non-trivial destructors create complexity that can easily lead to hard-to-find
-bugs. Dynamic initialization is not ordered across translation units, and
-neither is destruction (except that destruction
-happens in reverse order of initialization). When one initialization refers to
-another variable with static storage duration, it is possible that this causes
-an object to be accessed before its lifetime has begun (or after its lifetime
-has ended). Moreover, when a program starts threads that are not joined at exit,
-those threads may attempt to access objects after their lifetime has ended if
-their destructor has already run.</p>
-</div>
+<span class="nondrake">
+<p>One way to alleviate the destructor problem is to
+terminate the program by calling
+<code>quick_exit()</code> instead of <code>exit()</code>.
+The difference is that <code>quick_exit()</code> does not
+invoke destructors and does not invoke any handlers that
+were registered by calling <code>atexit()</code>. If you
+have a handler that needs to run when a program
+terminates via <code>quick_exit()</code> (flushing logs,
+for example), you can register it using
+<code>at_quick_exit()</code>. (If you have a handler that
+needs to run at both <code>exit()</code> and
+<code>quick_exit()</code>, you need to register it in
+both places.)</p>
+
+<p>As a result we only allow static variables to contain
+POD data. This rule completely disallows
+<code>std::vector</code> (use C arrays instead), or
+<code>string</code> (use <code>const char []</code>).</p>
+
+
+
+<p>If you need a static or global
+variable of a class type, consider initializing a pointer
+(which will never be freed), from either your main()
+function or from pthread_once(). Note that this must be a
+raw pointer, not a "smart" pointer, since the smart
+pointer's destructor will have the order-of-destructor
+issue that we are trying to avoid.</p>
+<span>
 
 <div class="decision">
 <h4>Decision on destruction</h4>
