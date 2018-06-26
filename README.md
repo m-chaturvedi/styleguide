@@ -42,7 +42,8 @@ Pulling Upstream Changes
 
 A Drake style guide maintainer should keep a local clone of this repository.
 This should be set up in the usual manner, but with remotes to both Google and
-Drake as you will want to be able to rebase from either one:
+Drake as you will want to (a) merge from Google and (b) rebase onto Drake
+updates:
 
  * Fork "styleguide" into your account, this is where all your branches will be
 
@@ -65,31 +66,32 @@ Drake as you will want to be able to rebase from either one:
    upstream.  Note that for compatibility with Google, we use the branch
    `gh-pages` as our master:
 
-        git remote add drake git@github.com:RobotLocomotion/styleguide.git
+        git remote add drake https://github.com/RobotLocomotion/styleguide.git
         git remote set-url --push drake no_push
+        git fetch drake
         git branch --set-upstream-to drake/gh-pages
 
  * Add a "google" remote for the Drake styleguide:
 
-        git remote add google git@github.com:google/styleguide.git
+        git remote add google https://github.com/google/styleguide.git
         git remote set-url --push google no_push
 
 Now that you have a repository and remotes set up, you want to be up-to-date
 with Drake and then pull Google's changes:
 
-    git co gh-pages
+    git checkout gh-pages
     git pull --ff-only
-    git co -b **NEW_BRANCH_NAME**
-    git pull --rebase google gh-pages
-    **RESOLVE CONFLICTS**
+    git checkout -b **NEW_BRANCH_NAME**
+    git pull google gh-pages
+    **RESOLVE CONFLICTS AND COMMIT**
     git push --set-upstream origin **NEW_BRANCH_NAME**
     **ORDINARY PR PROCESS**
 
-There is a high likelihood that this rebase will have conflicts.  These
+There is a high likelihood that this merge will have conflicts.  These
 conflicts represent google changes to or near Drake-specific style rules and
 should be considered carefully rather than accepted or rejected blindly.
 
-When you have resolved the rebase you should commit, push, and PR in the usual
+When you have resolved the merge you should commit, push, and PR in the usual
 manner.  In creating the PR, double-check that you are PR'ing against
 `RobotLocomotion/styleguide`, not `google/styleguide`.
 
