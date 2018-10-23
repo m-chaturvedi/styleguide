@@ -471,6 +471,7 @@ class CpplintTest(CpplintTestBase):
     cpplint.ProcessFileData('test.h', 'h',
                             ['// Copyright 2014 Your Company.',
                              '// NOLINT(build/header_guard)',
+                             '// NOLINT(build/pragma_once)',
                              'int64 a = (uint64) 65;',
                              '//  LINT_C_FILE',
                              ''],
@@ -505,6 +506,7 @@ class CpplintTest(CpplintTestBase):
       cpplint.ProcessFileData('test.h', 'h',
                               ['// Copyright 2014 Your Company.',
                                '// NOLINT(build/header_guard)',
+                               '// NOLINT(build/pragma_once)',
                                'int64 a = (uint64) 65;',
                                '/* Prevent warnings about the modeline',
                                modeline,
@@ -517,6 +519,7 @@ class CpplintTest(CpplintTestBase):
     cpplint.ProcessFileData('test.h', 'h',
                             ['// Copyright 2014 Your Company.',
                              '// NOLINT(build/header_guard)',
+                             '// NOLINT(build/pragma_once)',
                              'struct test {',
                              '\tint member;',
                              '};',
@@ -4031,7 +4034,7 @@ class CpplintTest(CpplintTestBase):
     expected_guard = self.GetBuildHeaderGuardPreprocessorSymbol(file_path)
     self.assertTrue(re.search('MYDIR_FOO_H_$', expected_guard))
 
-    # No guard at all: expect one error.
+    # No guard at all: expect one error from header_guard and pragma_once.
     error_collector = ErrorCollector(self.assert_)
     cpplint.ProcessFileData(file_path, 'h', [], error_collector)
     self.assertEquals(
@@ -4040,11 +4043,18 @@ class CpplintTest(CpplintTestBase):
             'No #ifndef header guard found, suggested CPP variable is: %s'
             '  [build/header_guard] [5]' % expected_guard),
         error_collector.ResultList())
+    self.assertEquals(
+        1,
+        error_collector.ResultList().count(
+            'No #pragma once guard found.'
+            '  [build/pragma_once] [5]'),
+        error_collector.ResultList())
 
-    # No header guard, but the error is suppressed.
+    # No header guard nor pragma once, but the error is suppressed.
     error_collector = ErrorCollector(self.assert_)
     cpplint.ProcessFileData(file_path, 'h',
                             ['// Copyright 2014 Your Company.',
+                             '// NOLINT(build/pragma_once)',
                              '// NOLINT(build/header_guard)', ''],
                             error_collector)
     self.assertEquals([], error_collector.ResultList())

@@ -215,6 +215,7 @@ _ERROR_CATEGORIES = [
     'build/include_order',
     'build/include_what_you_use',
     'build/namespaces',
+    'build/pragma_once',
     'build/printf_format',
     'build/storage_class',
     'legal/copyright',
@@ -280,7 +281,10 @@ _LEGACY_ERROR_CATEGORIES = [
 # flag. By default all errors are on, so only add here categories that should be
 # off by default (i.e., categories that must be enabled by the --filter= flags).
 # All entries here should start with a '-' or '+', as in the --filter= flag.
-_DEFAULT_FILTERS = ['-build/include_alpha']
+_DEFAULT_FILTERS = [
+    '-build/include_alpha',
+    '-build/pragma_once',
+    ]
 
 # The default list of categories suppressed for C (not C++) files.
 _DEFAULT_C_SUPPRESSED_CATEGORIES = [
@@ -1977,6 +1981,34 @@ def CheckForHeaderGuard(filename, clean_lines, error):
   # Didn't find anything
   error(filename, endif_linenum, 'build/header_guard', 5,
         '#endif line should be "#endif  // %s"' % cppvar)
+
+
+def CheckForPragmaOnce(filename, clean_lines, error):
+  """Checks that the file contains a #pragma once.
+
+  Logs an error if no #pragma once guard is present.
+
+  Args:
+    filename: The name of the C++ header file.
+    clean_lines: A CleansedLines instance containing the file.
+    error: The function to call with any errors found.
+  """
+
+  # Don't check for header guards if there are error suppression
+  # comments somewhere in this file.
+  #
+  # Because this is silencing a warning for a nonexistent line, we
+  # only support the very specific NOLINT(build/pragma_once) syntax,
+  # and not the general NOLINT or NOLINT(*) syntax.
+  raw_lines = clean_lines.lines_without_raw_strings
+  for i in raw_lines:
+    if Search(r'//\s*NOLINT\(build/pragma_once\)', i):
+      return
+    if Search(r'^#pragma once', i):
+      return
+
+  error(filename, 0, 'build/pragma_once', 5,
+        'No #pragma once guard found.')
 
 
 def CheckHeaderFileIncluded(filename, include_state, error):
@@ -4300,7 +4332,7 @@ def GetLineWidth(line):
           is_low_surrogate = 0xDC00 <= ord(uc) <= 0xDFFF
           if not is_wide_build and is_low_surrogate:
             width -= 1
-          
+
         width += 1
     return width
   else:
@@ -5923,6 +5955,7 @@ def ProcessFileData(filename, file_extension, lines, error,
 
   if IsHeaderExtension(file_extension):
     CheckForHeaderGuard(filename, clean_lines, error)
+    CheckForPragmaOnce(filename, clean_lines, error)
 
   for line in xrange(clean_lines.NumLines()):
     ProcessLine(filename, file_extension, clean_lines, line,
