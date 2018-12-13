@@ -578,7 +578,7 @@ def ProcessHppHeadersOption(val):
     # Automatically append to extensions list so it does not have to be set 2 times
     _valid_extensions.update(_hpp_headers)
   except ValueError:
-    PrintUsage('Header extensions must be comma seperated list.')
+    PrintUsage('Header extensions must be comma separated list.')
 
 def IsHeaderExtension(file_extension):
   return file_extension in _hpp_headers
@@ -1855,8 +1855,8 @@ def GetHeaderGuardCPPVariable(filename):
                                  PathSplitToList(_root))
 
     if _root_debug:
-      sys.stderr.write("_root lstrip (maybe_path=%s, file_path_from_root=%s," +
-          " _root=%s)\n" %(maybe_path, file_path_from_root, _root))
+      sys.stderr.write(("_root lstrip (maybe_path=%s, file_path_from_root=%s," +
+          " _root=%s)\n") %(maybe_path, file_path_from_root, _root))
 
     if maybe_path:
       return os.path.join(*maybe_path)
@@ -1869,8 +1869,8 @@ def GetHeaderGuardCPPVariable(filename):
                                  PathSplitToList(root_abspath))
 
     if _root_debug:
-      sys.stderr.write("_root prepend (maybe_path=%s, full_path=%s, " +
-          "root_abspath=%s)\n" %(maybe_path, full_path, root_abspath))
+      sys.stderr.write(("_root prepend (maybe_path=%s, full_path=%s, " +
+          "root_abspath=%s)\n") %(maybe_path, full_path, root_abspath))
 
     if maybe_path:
       return os.path.join(*maybe_path)
@@ -6237,7 +6237,7 @@ def ParseArguments(args):
       try:
           _valid_extensions = set(val.split(','))
       except ValueError:
-          PrintUsage('Extensions must be comma seperated list.')
+          PrintUsage('Extensions must be comma separated list.')
     elif opt == '--headers':
       ProcessHppHeadersOption(val)
 
