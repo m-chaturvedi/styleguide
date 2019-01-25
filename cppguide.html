@@ -4909,6 +4909,7 @@ identifiers
 (<code>websearch::index</code>, <code>websearch::index_util</code>)
 over collision-prone names like <code>websearch::util</code>.</p>
 
+<div class="nondrake">
 <p>For <code>internal</code> namespaces, be wary of other code being
 added to the same <code>internal</code> namespace causing a collision
 (internal helpers within a team tend to be related and may lead to
@@ -4916,6 +4917,10 @@ collisions). In such a situation, using the filename to make a unique
 internal name is helpful
 (<code>websearch::index::frobber_internal</code> for use
 in <code>frobber.h</code>)</p>
+</div>
+
+<p class="drake">Prefer just the name <code>internal</code>. For consistency,
+avoid using the name <code>detail</code>.</p>
 
 </div> 
 
