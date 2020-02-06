@@ -32,6 +32,18 @@ When making a change, avoid changing whitespace or indentation unnecessarily.
 Conflict resolution is difficult in prose text, and conflicts that are just
 paragraph reflows make future maintainers cry.
 
+Relevant Pages
+--------------
+
+The relevant modified style guides used by Drake are:
+
+* [C++ Style Guide](./cppguide.html)
+
+<!--
+TODO(eric): Enable this once Python guide is used.
+* [Python Style Guide](./pyguide.html) (*generation required*)
+-->
+
 Making New Changes
 ------------------
 
@@ -39,6 +51,19 @@ Branch, update, and PR as you would any other Drake change.
 
 Ensure that Drake is updated. See [Updating Drake](#updating-drake) for more
 information.
+
+Previewing Changes
+------------------
+
+Generally, you can preview changes locally without any build. However, if a page
+is denoted as needing generation, you can view them locally by running this
+script which will indicate necessary prereqs:
+
+    ./preview_site_jekyll.py
+
+You can alternatively preview them on your own GitHub fork.
+
+<!-- TODO(eric): Document this workflow. -->
 
 Pulling Upstream Changes
 ------------------------
