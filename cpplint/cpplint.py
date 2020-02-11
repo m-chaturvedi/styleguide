@@ -5376,6 +5376,8 @@ def ExpectingFunctionArgs(clean_lines, linenum):
 
 
 _HEADERS_CONTAINING_TEMPLATES = (
+    ('<any>', ('any',)),
+    ('<array>', ('array',)),
     ('<deque>', ('deque',)),
     ('<functional>', ('unary_function', 'binary_function',
                       'plus', 'minus', 'multiplies', 'divides', 'modulus',
@@ -5399,6 +5401,7 @@ _HEADERS_CONTAINING_TEMPLATES = (
     ('<map>', ('map', 'multimap',)),
     ('<memory>', ('allocator', 'make_shared', 'make_unique', 'shared_ptr',
                   'unique_ptr', 'weak_ptr')),
+    ('<optional>', ('optional',)),
     ('<queue>', ('queue', 'priority_queue',)),
     ('<set>', ('set', 'multiset',)),
     ('<stack>', ('stack',)),
@@ -5407,6 +5410,7 @@ _HEADERS_CONTAINING_TEMPLATES = (
     ('<unordered_map>', ('unordered_map', 'unordered_multimap')),
     ('<unordered_set>', ('unordered_set', 'unordered_multiset')),
     ('<utility>', ('pair',)),
+    ('<variant>', ('variant',)),
     ('<vector>', ('vector',)),
 
     # gcc extensions.
