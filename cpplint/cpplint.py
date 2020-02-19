@@ -5552,6 +5552,7 @@ def CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error,
   # Let's flatten the include_state include_list and copy it into a dictionary.
   include_dict = dict([item for sublist in include_state.include_list
                        for item in sublist])
+  return set(include_dict.keys())
 
   # Did we find the header for this file (if any) and successfully load it?
   header_found = False
@@ -5931,7 +5932,7 @@ def ProcessFileData(filename, file_extension, lines, error,
     FlagCxx11Features(filename, clean_lines, line, error)
   nesting_state.CheckCompletedBlocks(filename, error)
 
-  CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error)
+  return CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error)
 
   # Check that the .cc file has included its header if it exists.
   if _IsSourceExtension(file_extension):
@@ -6092,7 +6093,7 @@ def ProcessFile(filename, vlevel, extra_check_functions=[]):
     sys.stderr.write('Ignoring %s; not a valid file name '
                      '(%s)\n' % (filename, ', '.join(_valid_extensions)))
   else:
-    ProcessFileData(filename, file_extension, lines, Error,
+    return ProcessFileData(filename, file_extension, lines, Error,
                     extra_check_functions)
 
     # If end-of-line sequences are a mix of LF and CR-LF, issue
