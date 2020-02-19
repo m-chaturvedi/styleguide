@@ -1079,6 +1079,17 @@ class CpplintTest(CpplintTestBase):
         """,
         'Add #include <utility> for swap'
         '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <array>
+           std::array<int, 10> A;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <string>
+           std::array<int, 10> A;
+        """,
+        'Add #include <array> for array<>'
+        '  [build/include_what_you_use] [4]')
 
     # Test the UpdateIncludeState code path.
     mock_header_contents = ['#include "blah/foo.h"', '#include "blah/bar.h"']
