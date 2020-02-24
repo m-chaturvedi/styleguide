@@ -5376,7 +5376,6 @@ def ExpectingFunctionArgs(clean_lines, linenum):
 
 
 _HEADERS_CONTAINING_TEMPLATES = (
-    ('<any>', ('any',)),
     ('<array>', ('array',)),
     ('<deque>', ('deque',)),
     ('<functional>', ('unary_function', 'binary_function',
