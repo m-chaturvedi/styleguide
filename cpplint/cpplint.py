@@ -5378,6 +5378,7 @@ def ExpectingFunctionArgs(clean_lines, linenum):
 _HEADERS_CONTAINING_TEMPLATES = (
     ('<any>', ('any',)),
     ('<array>', ('array',)),
+    ('<atomic>', ('atomic',)),
     ('<deque>', ('deque',)),
     ('<functional>', ('unary_function', 'binary_function',
                       'plus', 'minus', 'multiplies', 'divides', 'modulus',
@@ -5420,6 +5421,11 @@ _HEADERS_CONTAINING_TEMPLATES = (
     ('<slist>', ('slist',)),
     )
 
+_HEADERS_CONTAINING_NON_TEMPLATES = (
+    ('<mutex>', ('mutex', )),
+    ('<thread>', ('thread', 'this_thread')),
+    )
+
 _HEADERS_MAYBE_TEMPLATES = (
     ('<algorithm>', ('copy', 'max', 'min', 'min_element', 'sort',
                      'transform',
@@ -5438,6 +5444,14 @@ for _header, _templates in _HEADERS_MAYBE_TEMPLATES:
         (re.compile(r'[^>.]\b' + _template + r'(<.*?>)?\([^\)]'),
             _template,
             _header))
+
+_re_pattern_non_templates = []
+for _header, _templates in _HEADERS_CONTAINING_NON_TEMPLATES:
+  for _template in _templates:
+    _re_pattern_non_templates.append(
+        (re.compile(r'(\<|\b)' + _template + r'\b'),
+         _template,
+         _header))
 
 # Other scripts may reach in and modify this pattern.
 _re_pattern_templates = []
@@ -5569,6 +5583,16 @@ def CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error,
     for pattern, template, header in _re_pattern_headers_maybe_templates:
       if pattern.search(line):
         required[header] = (linenum, template)
+
+    # Needs to be bofore the check for '<'
+    for pattern, template, header in _re_pattern_non_templates:
+      matched = pattern.search(line)
+      if matched:
+        # Don't warn about IWYU in non-STL namespaces:
+        # (We check only the first match per line; good enough.)
+        prefix = line[:matched.start()]
+        if prefix.endswith('std::') or not prefix.endswith('::'):
+          required[header] = (linenum, template)
 
     # The following function is just a speed up, no semantics are changed.
     if not '<' in line:  # Reduces the cpu time usage by skipping lines.
