@@ -1112,6 +1112,83 @@ class CpplintTest(CpplintTestBase):
         """,
         'Add #include <variant> for variant<>'
         '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <atomic>
+           std::atomic<int> foo;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <string>
+           std::atomic<int> A;
+        """,
+        'Add #include <atomic> for atomic<>'
+        '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <any>
+           std::any foo;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <vector>
+           std::any foo;
+        """,
+        'Add #include <any> for any'
+        '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <mutex>
+           std::mutex foo;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <vector>
+           std::vector<std::mutex> foo;
+        """,
+        'Add #include <mutex> for mutex'
+        '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <mutex>
+           #include <vector>
+           std::vector<std::mutex> foo;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <string>
+           std::mutex A;
+        """,
+        'Add #include <mutex> for mutex'
+        '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <thread>
+           std::thread foo;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <string>
+           thread_local static int g_iprint;
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <string>
+           std::thread foo;
+        """,
+        'Add #include <thread> for thread'
+        '  [build/include_what_you_use] [4]')
+    self.TestIncludeWhatYouUse(
+        """#include <chrono>
+           #include <thread>
+           const std::chrono::milliseconds kDelay(50);
+           std::this_thread::sleep_for(kDelay);
+        """,
+        '')
+    self.TestIncludeWhatYouUse(
+        """#include <chrono>
+           #include <string>
+           const std::chrono::milliseconds kDelay(50);
+           std::this_thread::sleep_for(kDelay);
+        """,
+        'Add #include <thread> for this_thread'
+        '  [build/include_what_you_use] [4]')
+
 
     # Test the UpdateIncludeState code path.
     mock_header_contents = ['#include "blah/foo.h"', '#include "blah/bar.h"']
