@@ -5449,7 +5449,7 @@ _re_pattern_non_templates = []
 for _header, _templates in _HEADERS_CONTAINING_NON_TEMPLATES:
   for _template in _templates:
     _re_pattern_non_templates.append(
-        (re.compile(r'(\<|\b)' + _template + r'\b'),
+        (re.compile(r'(\b)' + _template + r'\b'),
          _template,
          _header))
 
@@ -5584,7 +5584,7 @@ def CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error,
       if pattern.search(line):
         required[header] = (linenum, template)
 
-    # Needs to be bofore the check for '<'
+    # Needs to be before the check for '<'
     for pattern, template, header in _re_pattern_non_templates:
       matched = pattern.search(line)
       if matched:
